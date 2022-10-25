@@ -60,7 +60,23 @@ int queue_enqueue(queue_t queue, void *data)
 
 int queue_dequeue(queue_t queue, void **data)
 {
-	/* TODO Phase 1 */
+    
+	if (queue == NULL || data == NULL) {  //  Error Catcher
+        return -1;
+    }
+
+    if (queue->head == NULL) {  //  empty queue
+        return -1;
+    }
+
+    *data = queue->head->data;
+    node_t freeNode = queue->head;
+    queue->head = queue->head->next;
+
+    free(freeNode);
+    queue->size--;
+
+    return 0;
 }
 
 int queue_delete(queue_t queue, void *data)

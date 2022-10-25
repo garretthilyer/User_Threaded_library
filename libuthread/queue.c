@@ -47,12 +47,10 @@ int queue_enqueue(queue_t queue, void *data)
         /* if it is the first item in queue, set head and tail to point at it */
         queue->head = newNode;
         queue->tail = newNode;
-        newNode->next = queue->tail;
 
     } else {
         queue->tail->next = newNode;  // have last node point to new node
         queue->tail = newNode;  //  update last pointer (anchor) to point to last node
-        newNode->next = queue->tail;  //  point new node back at tail (double linked)
     }
 
     queue->size++;  //  increment size by +1 

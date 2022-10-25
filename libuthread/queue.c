@@ -4,66 +4,59 @@
 
 #include "queue.h"
 
+typedef struct node* node_t;
+
 struct queue {
 
-	void* data;  //  holds data a specific memory address
-    queue_t next;  //  points to next structure node in queue
+	node_t head;
+    node_t tail;
+    int size;
+};
+
+struct node{
+    void* data;  //  holds data a specific memory address
+    node_t next;  //  points to next structure node in queue
 };
 
 queue_t queue_create(void)
 {
-	queue_t head = malloc(sizeof(struct queue));  //  dynamic allocation 
-    head->next = NULL;  //  set both to NULL
-    head->data = NULL;
+	queue_t newQueue = (queue_t) malloc(sizeof(struct queue));
+    newQueue->head = NULL;
+    newQueue->tail = NULL;
+    newQueue->size = 0;
 
-    return head;
 }
 
 int queue_destroy(queue_t queue)
 {
-	 if(queue == NULL){
-        return -1;
-    }
 
-    queue_t freeQueue = NULL;
-    
-    while(queue != NULL){
-        freeQueue = queue;
-        queue = queue->next;
-        free(freeQueue);
-    }
-    freeQueue = NULL;
-    return 0;
 }
 
 int queue_enqueue(queue_t queue, void *data)
 {
 
-	if (queue == NULL || data == NULL) {  //  Error catcher
-		return -1;
-	}
-
-	if (queue->data == NULL) {  //  if first enqueued item
-
-        queue->data = data;  
-        return 0;
-
+	    if (queue == NULL || data == NULL) {
+        return -1;
     }
+    /*allocate and initialize new node */
+    node_t newNode = (node_t)malloc(sizeof(struct node));
+    newNode->data = data;
+    newNode->next = NULL;
 
-    if (queue->next == NULL) {  //  if we have reached end of list 
-
-        queue_t newNode = malloc(sizeof(queue_t));  //  dyanmic allocation 
-        newNode->data = data;  //  point to data passed
-        newNode->next = NULL;  //  SET NEXT TO NULL (critical for segfaults)
-        queue->next = newNode;  //  set new node to null
-        return 0;  //  clean exit value 
+    if (queue->tail == NULL) {
+        /* if it is the first item in queue, set head and tail to point at it */
+        queue->head = newNode;
+        queue->tail = newNode;
+        newNode->next = queue->tail;
 
     } else {
-
-        return queue_enqueue(queue->next, data);  //  recurse through queue
+        queue->tail->next = newNode;  // have last node point to new node
+        queue->tail = newNode;  //  update last pointer (anchor) to point to last node
+        newNode->next = queue->tail;  //  point new node back at tail (double linked)
     }
 
-	return -1;  //  should never reach this point (if it does, error)
+    queue->size++;  //  increment size by +1 
+    return 0;
 
 }
 
@@ -84,6 +77,6 @@ int queue_iterate(queue_t queue, queue_func_t func)
 
 int queue_length(queue_t queue)
 {
-	/* TODO Phase 1 */
+	return queue->size;
 }
 

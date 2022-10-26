@@ -7,7 +7,6 @@
 typedef struct node* node_t;
 
 struct queue {
-
 	node_t head;
     node_t tail;
     int size;
@@ -29,14 +28,25 @@ queue_t queue_create(void)
 
 int queue_destroy(queue_t queue)
 {
+    if (queue == NULL || queue->size != 0) {  //  if queue is null OR queue is not empty
+
+        return -1;
+
+    } else {  //  else free the queue and deallocate memory
+        
+        free(queue);
+        return 0;
+
+    }
 
 }
 
 int queue_enqueue(queue_t queue, void *data)
 {
+	if (queue == NULL || data == NULL) {
 
-	    if (queue == NULL || data == NULL) {
         return -1;
+
     }
     /*allocate and initialize new node */
     node_t newNode = (node_t)malloc(sizeof(struct node));
@@ -49,8 +59,10 @@ int queue_enqueue(queue_t queue, void *data)
         queue->tail = newNode;
 
     } else {
+
         queue->tail->next = newNode;  // have last node point to new node
         queue->tail = newNode;  //  update last pointer (anchor) to point to last node
+
     }
 
     queue->size++;  //  increment size by +1 
@@ -62,26 +74,75 @@ int queue_dequeue(queue_t queue, void **data)
 {
     
 	if (queue == NULL || data == NULL) {  //  Error Catcher
+
         return -1;
+    
     }
 
-    if (queue->head == NULL) {  //  empty queue
+    if (queue->head == NULL ) {  //  empty queue
         return -1;
+
     }
 
     *data = queue->head->data;
     node_t freeNode = queue->head;
     queue->head = queue->head->next;
-
     free(freeNode);
     queue->size--;
+
+    if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was dequeued from list 
+        queue->head = NULL;
+        queue->tail = NULL;
+    }
 
     return 0;
 }
 
 int queue_delete(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
+    if (queue == NULL || data == NULL){  //  Error catcher
+        return -1;
+    }
+
+    node_t currentNode = queue->head;
+    if (queue->head->data == data) {  //  first item in queue
+        queue->head = queue->head->next;
+        free(currentNode);
+        queue->size--;
+
+        if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was dequeued from list
+            queue->head = NULL;
+            queue->tail = NULL;
+        }
+        return 0;
+    }
+    node_t previousNode = queue->head;
+    currentNode = currentNode->next;
+
+    while (currentNode != NULL) {
+
+        if (currentNode->data == data) {
+
+            previousNode->next = currentNode->next;
+
+            if (previousNode->next == NULL) {  //  current node WAS the tail, update previous with current
+                queue->tail = previousNode;
+            }
+
+            queue->size--;
+            free(currentNode);
+            return 0;
+
+        } else {
+            
+            currentNode = currentNode->next;
+            previousNode = previousNode->next;
+
+        }
+
+    }
+
+    return -1;
 }
 
 int queue_iterate(queue_t queue, queue_func_t func)

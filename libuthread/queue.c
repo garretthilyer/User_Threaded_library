@@ -110,7 +110,7 @@ int queue_delete(queue_t queue, void *data)
         free(currentNode);
         queue->size--;
 
-        if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was dequeued from list
+        if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was deleted from list
             queue->head = NULL;
             queue->tail = NULL;
         }
@@ -134,7 +134,7 @@ int queue_delete(queue_t queue, void *data)
             return 0;
 
         } else {
-            
+
             currentNode = currentNode->next;
             previousNode = previousNode->next;
 
@@ -147,7 +147,21 @@ int queue_delete(queue_t queue, void *data)
 
 int queue_iterate(queue_t queue, queue_func_t func)
 {
-	/* TODO Phase 1 */
+    if (queue == NULL || func == NULL){  //  Error catcher
+        return -1;
+    }
+
+    node_t iteratedNode = queue->head;
+    
+    while (iteratedNode != NULL) {
+
+        void* passedData = iteratedNode->data;
+        iteratedNode = iteratedNode->next;
+        func(queue, passedData);
+
+    }
+
+    return 0;
 }
 
 int queue_length(queue_t queue)

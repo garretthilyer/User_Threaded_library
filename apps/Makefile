@@ -1,18 +1,16 @@
 # Target programs
 programs := \
-	queue_tester_example.x \
-	uthread_hello.x \
-	uthread_yield.x
+	queue_tester.x \
+	# uthread_hello.x \
+	# uthread_yield.x
 
 # FIXME: Remove this in student version
 programs += \
-	queue_usage_example.x \
-	queue_grader.x \
-	uthread_preempt.x \
-	sem_buffer.x \
-	sem_count.x \
-	sem_prime.x \
-	sem_simple.x
+	# uthread_preempt.x \
+	# sem_buffer.x \
+	# sem_count.x \
+	# sem_prime.x \
+	# sem_simple.x
 
 # User-level thread library
 UTHREADLIB := libuthread

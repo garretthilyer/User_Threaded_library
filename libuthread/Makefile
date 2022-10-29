@@ -4,11 +4,11 @@ OBJ := queue.o context.o uthread.o #preempt.o sem.o
 
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror
-CPLAGS += -g
+CFLAGS += -g
 
 all: $(lib)
 
-libuthread.a: $(OBJ) 
+libuthread.a: $(OBJ)
 	ar rcs $@ $(OBJ)
 
 queue.o: queue.c queue.h

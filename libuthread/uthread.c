@@ -50,20 +50,19 @@ void uthread_yield(void)
 
 void uthread_exit(void)
 {
-	tcb exitThread = uthread_current();
-
-	if(exitThread->stackTop != NULL){
-		uthread_ctx_destroy_stack(exitThread->stackTop);
+	if (queue_length(threadQueue) > 0) {
+		tcb newThread;
+		queue_dequeue(threadQueue, (void**)&newThread);
+		setcontext(newThread->context);
 	}
 
-	free(exitThread);
 }
 
 int uthread_create(uthread_func_t func, void *arg)
 {
 	
 	tcb createThread = (tcb)malloc(sizeof(struct uthread_tcb));  //  allocate space for thread ptr
-	createThread->stackTop = uthread_ctx_alloc_stack;
+	createThread->stackTop = uthread_ctx_alloc_stack();
 	createThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 
 	if ( createThread->stackTop == NULL ){
@@ -86,7 +85,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	} 
 
 	tcb idleThread = (tcb)malloc(sizeof(struct uthread_tcb));  //  allocate space for thread ptr
-	idleThread->stackTop = uthread_ctx_alloc_stack;
+	idleThread->stackTop = uthread_ctx_alloc_stack();
 	idleThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 
 	if ( idleThread->stackTop == NULL ){
@@ -101,6 +100,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	queue_enqueue(threadQueue, idleThread);
 
 	uthread_create(func, arg);
+
 	while (queue_length(threadQueue) > 0) {
 		uthread_yield();
 	}

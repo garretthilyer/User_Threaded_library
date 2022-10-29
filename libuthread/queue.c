@@ -23,6 +23,7 @@ queue_t queue_create(void)
     newQueue->head = NULL;
     newQueue->tail = NULL;
     newQueue->size = 0;
+    return newQueue;
 
 }
 

@@ -19,26 +19,42 @@ do {									\
 // outputs 0 when running correctly, -1 when an error occurs
 void test_create(void)
 {
+    // done
 	fprintf(stderr, "*** TEST create ***\n");
 
 	TEST_ASSERT(queue_create() != NULL);
 }
 
-/* Enqueue/Dequeue simple */
-void test_queue_simple(void)
+/* Enqueue/Dequeue */
+void test_enqueue_dequeue(void)
 {
+    // done
 	int data = 3, *ptr;
-	queue_t q;
+    void **ptr2 = NULL;
+    char *null_test = NULL;
+	queue_t q,q2;
 
 	fprintf(stderr, "*** TEST enqueue and dequeue ***\n");
 
+    // given test cases 
 	q = queue_create();
 	queue_enqueue(q, &data);
 	queue_dequeue(q, (void**)&ptr);
 	TEST_ASSERT(ptr == &data);
+
+    // testing NULL Inputs
+    q2 = NULL;
+    TEST_ASSERT(queue_enqueue(q, (void**)null_test) == -1);
+    TEST_ASSERT(queue_enqueue(q2, &data) == -1);
+    TEST_ASSERT(queue_dequeue(q2, (void**)&ptr2) == -1);
+    queue_enqueue(q, &data);
+    TEST_ASSERT(queue_dequeue(q, ptr2) == -1);
 }
 
-
+void test_delete(void)
+{
+    // WORK ON THIS
+}
 
 // Functions to pass in for func in test_iterator functions
 static void iterator_inc(queue_t q, void *data)
@@ -55,7 +71,7 @@ static void iterator_inc(queue_t q, void *data)
 void test_iterator(void)
 {
 
-    fprintf(stderr, "*** TEST queue_iterate ***\n");
+    fprintf(stderr, "*** TEST iterate ***\n");
 
     queue_t q;
     int data[] = {1, 2, 3, 4, 5, 42, 6, 7, 8, 9};
@@ -77,11 +93,10 @@ void test_iterator(void)
 
 void test_destroy(void)
 {
-//**** Must we dequeue all items in queue before destroying? 
-// Must our destroy function give an error if we try to destroy a queue with items still in it?
-
+    // done
     fprintf(stderr, "*** TEST destroy ***\n");
-    queue_t q;
+
+    queue_t q,q2;
     int data = 21, *ptr;
 
     q = queue_create();
@@ -90,14 +105,29 @@ void test_destroy(void)
 
     queue_dequeue(q, (void**)&ptr);
     TEST_ASSERT(queue_destroy(q) == 0);
+
+    q2 = NULL;
+    TEST_ASSERT(queue_destroy(q2) == -1);
+}
+
+void test_length(void)
+{
+    // done
+    fprintf(stderr, "*** TEST length ***\n");
+    queue_t q;
+    q = NULL;
+    TEST_ASSERT(queue_length(q) == -1);
+
 }
 
 int main(void)
 {
 	test_create();
-	test_queue_simple();
+	test_enqueue_dequeue();
+    //test_delete();
     test_iterator();
     test_destroy();
+    test_length();
 
 	return 0;
 }

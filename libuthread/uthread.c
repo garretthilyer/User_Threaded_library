@@ -50,8 +50,13 @@ void uthread_yield(void)
 
 void uthread_exit(void)
 {
-	if (queue_length(threadQueue) > 0) {
+	tcb deleteThread = uthread_current();
+	free(deleteThread->context);
+	uthread_ctx_destroy_stack(deleteThread->stackTop);
+	free(deleteThread);
 
+	if (queue_length(threadQueue) > 0) {
+		
 		tcb newThread;
 		queue_dequeue(threadQueue, (void**)&newThread);
 		setcontext(newThread->context);

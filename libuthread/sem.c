@@ -6,26 +6,39 @@
 #include "private.h"
 
 struct semaphore {
-	/* TODO Phase 3 */
+	int count;
+	queue_t waitQueue; 
+	
 };
 
 sem_t sem_create(size_t count)
 {
-	/* TODO Phase 3 */
+	sem_t newSem = (sem_t)malloc(sizeof(semaphore));
+	newSem->count = count;
+	newSem->waitQueue = queue_create();
+	return newSem;
+	
 }
 
 int sem_destroy(sem_t sem)
 {
-	/* TODO Phase 3 */
+	if ( (sem == NULL) || (sem->count == 0) ) {  //  if sem is NULL or if threads are still being blocked
+		return -1;
+	}
+
+	queue_destroy(sem->waitQueue);
+	free(sem);
+	return 0; 
+
 }
 
 int sem_down(sem_t sem)
 {
-	/* TODO Phase 3 */
+	
 }
 
 int sem_up(sem_t sem)
 {
-	/* TODO Phase 3 */
+	
 }
 

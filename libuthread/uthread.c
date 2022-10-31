@@ -44,7 +44,7 @@ void uthread_yield(void)
 	tcb newThread; 
 	queue_dequeue(threadQueue, (void**)&newThread);
 
-	swapcontext(yieldThread->context, newThread->context);
+	uthread_ctx_switch(yieldThread->context, newThread->context);
 
 }
 
@@ -93,18 +93,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		//preempt_enable();
 	} 
 
-	tcb idleThread = (tcb)malloc(sizeof(struct uthread_tcb));  //  allocate space for thread ptr
-	idleThread->stackTop = uthread_ctx_alloc_stack();
-	idleThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
-
-	if ( idleThread->stackTop == NULL ){
-		return -1;
-	}
-
-	if ( uthread_ctx_init(idleThread->context, idleThread->stackTop, func, arg) ){
-		return -1;
-	}
-
 	threadQueue = queue_create();
 	uthread_create(func, arg);
 
@@ -118,11 +106,14 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 void uthread_block(void)
 {
-	/* TODO Phase 3 */
+	tcb nextThread;
+	queue_dequeue(threadQueue, (void**)&nextThread);
+	setcontext(nextThread->context);
+
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	uthread->context = NULL;
+	queue_enqueue(threadQueue, uthread);
 }
 

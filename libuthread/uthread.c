@@ -51,9 +51,13 @@ void uthread_yield(void)
 void uthread_exit(void)
 {
 	if (queue_length(threadQueue) > 0) {
+
 		tcb newThread;
 		queue_dequeue(threadQueue, (void**)&newThread);
 		setcontext(newThread->context);
+
+	} else {
+		return; 
 	}
 
 }
@@ -97,13 +101,13 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	}
 
 	threadQueue = queue_create();
-	queue_enqueue(threadQueue, idleThread);
-
 	uthread_create(func, arg);
 
 	while (queue_length(threadQueue) > 0) {
 		uthread_yield();
 	}
+
+	queue_destroy(threadQueue);
 	return 0;
 }
 

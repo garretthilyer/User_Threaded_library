@@ -27,7 +27,7 @@ struct uthread_tcb *uthread_current(void)
 	currentThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 
 	getcontext(currentThread->context);
-	currentThread->stackTop = currentThread->context->uc_stack.ss_sp;
+	//currentThread->stackTop = currentThread->context->uc_stack.ss_sp;
 
 	return currentThread;
 }
@@ -51,17 +51,16 @@ void uthread_yield(void)
 void uthread_exit(void)
 {
 	tcb deleteThread = uthread_current();
-	free(deleteThread->context);
-	uthread_ctx_destroy_stack(deleteThread->stackTop);
-	free(deleteThread);
-
 	if (queue_length(threadQueue) > 0) {
 		
 		tcb newThread;
 		queue_dequeue(threadQueue, (void**)&newThread);
-		setcontext(newThread->context);
-
+		uthread_ctx_switch(deleteThread->context, newThread->context);
+			
 	} else {
+		free(deleteThread->context);
+		uthread_ctx_destroy_stack(deleteThread->stackTop);
+		free(deleteThread);
 		return; 
 	}
 
@@ -107,8 +106,9 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 void uthread_block(void)
 {
 	tcb nextThread;
+	tcb blockedThread = uthread_current();
 	queue_dequeue(threadQueue, (void**)&nextThread);
-	setcontext(nextThread->context);
+	uthread_ctx_switch(blockedThread->context, nextThread->context);
 
 }
 

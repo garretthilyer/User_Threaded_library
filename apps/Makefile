@@ -6,11 +6,12 @@ programs := \
 
 # FIXME: Remove this in student version
 programs += \
+	sem_simple.x \
+	sem_count.x \
 	# uthread_preempt.x \
 	# sem_buffer.x \
-	# sem_count.x \
 	# sem_prime.x \
-	# sem_simple.x
+
 
 # User-level thread library
 UTHREADLIB := libuthread

@@ -53,7 +53,16 @@ void test_enqueue_dequeue(void)
 
 void test_delete(void)
 {
-    // WORK ON THIS
+    fprintf(stderr, "*** TEST delete ***\n");
+
+    queue_t q1;
+    q1 = NULL;
+    int data = 1;
+    TEST_ASSERT(queue_delete(q1, &data) == -1); 
+    q1 = queue_create();
+    queue_enqueue(q1, &data);
+    TEST_ASSERT(queue_delete(q1, &data) == 0);
+
 }
 
 // Functions to pass in for func in test_iterator functions
@@ -124,7 +133,7 @@ int main(void)
 {
 	test_create();
 	test_enqueue_dequeue();
-    //test_delete();
+    test_delete();
     test_iterator();
     test_destroy();
     test_length();

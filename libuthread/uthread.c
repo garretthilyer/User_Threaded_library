@@ -10,9 +10,11 @@
 #include "uthread.h"
 #include "queue.h"
 
+
 typedef struct uthread_tcb* tcb;
 
 queue_t threadQueue;
+tcb currentThread;
 
 struct uthread_tcb {
 
@@ -23,12 +25,6 @@ struct uthread_tcb {
 
 struct uthread_tcb *uthread_current(void)
 {
-	tcb currentThread = (tcb)malloc(sizeof(struct uthread_tcb));
-	currentThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
-
-	getcontext(currentThread->context);
-	//currentThread->stackTop = currentThread->context->uc_stack.ss_sp;
-
 	return currentThread;
 }
 
@@ -43,6 +39,7 @@ void uthread_yield(void)
 
 	tcb newThread; 
 	queue_dequeue(threadQueue, (void**)&newThread);
+	currentThread = newThread;
 
 	uthread_ctx_switch(yieldThread->context, newThread->context);
 
@@ -51,17 +48,21 @@ void uthread_yield(void)
 void uthread_exit(void)
 {
 	tcb deleteThread = uthread_current();
-	if (queue_length(threadQueue) > 0) {
-		
+	if (queue_length(threadQueue) != 0) {
+
+		uthread_ctx_destroy_stack(deleteThread->stackTop);
 		tcb newThread;
 		queue_dequeue(threadQueue, (void**)&newThread);
+		currentThread = newThread;
 		uthread_ctx_switch(deleteThread->context, newThread->context);
 			
 	} else {
+
 		free(deleteThread->context);
 		uthread_ctx_destroy_stack(deleteThread->stackTop);
 		free(deleteThread);
 		return; 
+
 	}
 
 }
@@ -93,9 +94,14 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	} 
 
 	threadQueue = queue_create();
+	tcb idle = (tcb)malloc(sizeof(struct uthread_tcb));
+	idle->stackTop = uthread_ctx_alloc_stack();
+	idle->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+	getcontext(idle->context);
+	currentThread = idle;
 	uthread_create(func, arg);
 
-	while (queue_length(threadQueue) > 0) {
+	while (queue_length(threadQueue) != 0) {
 		uthread_yield();
 	}
 
@@ -108,6 +114,7 @@ void uthread_block(void)
 	tcb nextThread;
 	tcb blockedThread = uthread_current();
 	queue_dequeue(threadQueue, (void**)&nextThread);
+	currentThread = nextThread;
 	uthread_ctx_switch(blockedThread->context, nextThread->context);
 
 }
@@ -115,5 +122,6 @@ void uthread_block(void)
 void uthread_unblock(struct uthread_tcb *uthread)
 {
 	queue_enqueue(threadQueue, uthread);
+	uthread_yield();
 }
 

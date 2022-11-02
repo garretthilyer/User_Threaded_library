@@ -8,9 +8,10 @@ programs := \
 programs += \
 	sem_simple.x \
 	sem_count.x \
+	sem_buffer.x \
+	sem_prime.x \
 	# uthread_preempt.x \
-	# sem_buffer.x \
-	# sem_prime.x \
+	
 
 
 # User-level thread library

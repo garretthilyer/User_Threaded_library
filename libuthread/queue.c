@@ -19,11 +19,11 @@ struct node{
 
 queue_t queue_create(void)
 {
-	queue_t newQueue = (queue_t) malloc(sizeof(struct queue));
-    newQueue->head = NULL;
-    newQueue->tail = NULL;
-    newQueue->size = 0;
-    return newQueue;
+	queue_t newQueue = (queue_t) malloc(sizeof(struct queue));  //  Allocate space for queue
+    newQueue->head = NULL;  //  set head and tail to NULL
+    newQueue->tail = NULL; 
+    newQueue->size = 0;  //  set size to 0
+    return newQueue; 
 
 }
 
@@ -35,7 +35,7 @@ int queue_destroy(queue_t queue)
 
     } else {  //  else free the queue and deallocate memory
         
-        free(queue);
+        free(queue); 
         return 0;
 
     }
@@ -45,7 +45,6 @@ int queue_destroy(queue_t queue)
 int queue_enqueue(queue_t queue, void *data)
 {
 	if (queue == NULL || data == NULL) {
-
         return -1;
 
     }
@@ -90,10 +89,10 @@ int queue_dequeue(queue_t queue, void **data)
 
     }
 
-    *data = queue->head->data;
+    *data = queue->head->data;  //  set return address 
     node_t freeNode = queue->head;
     queue->head = queue->head->next;
-    free(freeNode);
+    free(freeNode);  //  free node 
     queue->size--;
 
     if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was dequeued from list 
@@ -176,6 +175,10 @@ int queue_iterate(queue_t queue, queue_func_t func)
 
 int queue_length(queue_t queue)
 {
+    if(queue == NULL) {
+        return -1; 
+    }
+
 	return queue->size;
 }
 

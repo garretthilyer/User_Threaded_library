@@ -19,6 +19,7 @@ struct node{
 
 queue_t queue_create(void)
 {
+    // if malloc fails it returns NULL, so we do not need to add additional management
 	queue_t newQueue = (queue_t) malloc(sizeof(struct queue));
     newQueue->head = NULL;
     newQueue->tail = NULL;
@@ -51,6 +52,10 @@ int queue_enqueue(queue_t queue, void *data)
     }
     /*allocate and initialize new node */
     node_t newNode = (node_t)malloc(sizeof(struct node));
+    if (newNode == 0){
+        // Malloc allocation has failed
+        return -1;
+    }
     newNode->data = data;
     newNode->next = NULL;
 
@@ -167,6 +172,9 @@ int queue_iterate(queue_t queue, queue_func_t func)
 
 int queue_length(queue_t queue)
 {
+    if(queue == NULL){
+        return -1;
+    }
 	return queue->size;
 }
 

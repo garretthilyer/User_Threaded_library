@@ -15,6 +15,8 @@
  */
 #define HZ 100
 
+// preempt_enable and disable are like interupt enable and disable
+// void signal_handler()
 void preempt_disable(void)
 {
 	/* TODO Phase 4 */

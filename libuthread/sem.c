@@ -61,13 +61,14 @@ int sem_up(sem_t sem)
 
 	sem->count++;
 
-	if (queue_length(sem->waitQueue) != 0 ) {
+	if (queue_length(sem->waitQueue) > 0 ) {
 		struct uthread_tcb* unblockedThread;
 		queue_dequeue(sem->waitQueue, (void**)&unblockedThread);
 		uthread_unblock(unblockedThread);
 
 	}
 
+	
 	return 0; 
 }
 

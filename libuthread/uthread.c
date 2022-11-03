@@ -97,6 +97,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	tcb idle = (tcb)malloc(sizeof(struct uthread_tcb));
 	idle->stackTop = uthread_ctx_alloc_stack();
 	idle->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
+
 	getcontext(idle->context);
 	currentThread = idle;
 	uthread_create(func, arg);
@@ -121,7 +122,8 @@ void uthread_block(void)
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
+	
 	queue_enqueue(threadQueue, uthread);
-	uthread_yield();
+	
 }
 

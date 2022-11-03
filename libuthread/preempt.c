@@ -78,7 +78,7 @@ void preempt_stop(void)
 {
 	/*Restore signal and timer*/
 	sigaction(SIGVTALRM, &OLDACTION, NULL);
-	setitimer(ITIMER_REAL, &OLDTIMER, NULL);
+	setitimer(ITIMER_VIRTUAL, &OLDTIMER, NULL);
 
 }
 

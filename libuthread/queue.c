@@ -85,6 +85,11 @@ int queue_dequeue(queue_t queue, void **data)
     
     }
 
+    if(queue->size == 0) {  //  dequeuing empty array
+        return -1;
+    }
+
+
     if (queue->head == NULL ) {  //  empty queue
         return -1;
 
@@ -98,6 +103,10 @@ int queue_dequeue(queue_t queue, void **data)
 
     if ((queue->head == queue->tail) && (queue->size == 0)) {  //  reset head and tail to null if the last item was dequeued from list 
         queue->head = NULL;
+        queue->tail = NULL;
+    }
+
+    if(queue->head == NULL) {
         queue->tail = NULL;
     }
 

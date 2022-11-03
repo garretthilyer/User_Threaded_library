@@ -15,25 +15,70 @@
  */
 #define HZ 100
 
-// preempt_enable and disable are like interupt enable and disable
-// void signal_handler()
+/* These four variables need to be in the global space so start and stop can access them...*/
+struct itimerval NEWTIMER;  
+struct itimerval OLDTIMER;
+
+struct sigaction NEWACTION;
+struct sigaction OLDACTION; 
+
+sigset_t signalset;
+
+/*We want our handler to force a thread to yield and swap contexts*/
+void alarm_handler(int signum){
+	uthread_yield();
+}
+
+
 void preempt_disable(void)
 {
-	/* TODO Phase 4 */
+	
+	/*Union of Sets*/
+	sigprocmask(SIG_BLOCK, &signalset, NULL);
+
 }
 
 void preempt_enable(void)
 {
-	/* TODO Phase 4 */
+	
+	/*Intersection of Sets*/
+	sigprocmask(SIG_UNBLOCK, &signalset, NULL);
+
 }
 
 void preempt_start(bool preempt)
 {
-	/* TODO Phase 4 */
+	if (!preempt) {
+		return 
+	}
+
+	/*SET UP TIMER */
+	NEWTIMER.it_interval.tv.usec = 1000000 / HZ;
+	NEWTIMER.it_value.tv.usec = 1000000 / HZ;
+
+	NEWTIMER.it_interval.tv.sec = 0;
+	NEWTIMER.it_value.tv.sec = 0;
+
+	setitimer(ITIMER_VIRTUAL, &NEWTIMER, &OLDTIMER);
+
+	sigemptyset(&signalset);
+	sigaddset(&signalset, SIGVTALRM);
+
+
+	/*SET UP HANDLER FOR ALARMS*/
+	NEWACTION.sa_handler = alarm_handler;
+	sigemptyset(&NEWACTION.sa_mask)
+	NEWACTION.sa_flags = 0;
+
+	sigaction(SIGVTALRM, &NEWACTION, &OLDACTION)
+
 }
 
 void preempt_stop(void)
 {
-	/* TODO Phase 4 */
+	/*Restore signal and timer*/
+	sigaction(SIGVTALRM, &OLDACTION, NULL);
+	setitimer(ITIMER_REAL, &OLDTIMER, NULL);
+
 }
 

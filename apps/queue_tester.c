@@ -38,6 +38,7 @@ void test_enqueue_dequeue(void)
 
     // given test cases 
 	q = queue_create();
+    TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == -1);
 	queue_enqueue(q, &data);
 	queue_dequeue(q, (void**)&ptr);
 	TEST_ASSERT(ptr == &data);

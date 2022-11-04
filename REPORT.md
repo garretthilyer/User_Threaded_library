@@ -18,6 +18,15 @@ We had a combination 3 main principles to create our queue. This included defini
 The queue_tester.c file contains the testing information for queue.c. We reused the TEST_ASSERT function defined from the lecture code to pass in a number of different tests of our queue implementation. Cases ranged from checking the normal use of our queue if the expected values were returned to passing in cases where the queue was used in a wrong manner, wether by inputing a NULL variable into the function itself or by NULL being generated and used in a function's runtime.
 ### uthread.c
 ------
+The *uthread.c* consists of a multitude of functions dealt to handle and maintain an environment of multiple threads running concurrently. The first of which is *uthread_run()*. This function starts preemption if *bool preempt* is true and initializes the idle thread. It then uses *uthread_create()* to initialize another thread with the parameter *args* inside of the function parameter *uthread_func_t func*. It then enters a while loop and can only exit this while loop if *threadQueue* is ever empty. Inside of this while loop it empties and frees *tcb*’s inside of *deadThread* and calls *uthread_yield()* to swap contexts with another thread. 
+
+The next function in the chain of commands is *uthread_create()* this function allocates space for a new *tcb* structure. This function calls both *uthread_ctx_alloc_stack()* as well as *uthread_ctx_init()* to allocate space for both the stack and context members of the *tcb*. It then enqueues this *tcb* into *threadQueue*. 
+
+Up next is the *uthread_yield()* function. This function calls the *uthread_current()* function to get the current running thread and enqueues it into the ready queue. It then dequeues the oldest *tcb* structure and proceeds to swap contexts with the *uthread_ctx_switch()* function. 
+
+The final prominent function inside the *uthread.c* file is *uthread_exit()*. This function checks to see if *threadQueue* is empty. In most cases, *threadQueue* is not empty and *uthread_exit()* will dequeue the oldest *tcb*, destroy the stack of the currently running tcb and enqueue the currently running *tcb* into *deadThread*. Then the *uthread_exit()* will swap contexts of the exiting thread and the dequeued thread. 
+
+There are two other functions inside the *uthread.c* file: *uthread_block* and *uthread_unblock*. These functions will be discussed in the *sem.c* as they play more prominent roles there.
 ### sem.c
 ------
 ### preempt.c

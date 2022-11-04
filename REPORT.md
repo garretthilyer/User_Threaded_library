@@ -29,6 +29,13 @@ The final prominent function inside the *uthread.c* file is *uthread_exit()*. Th
 There are two other functions inside the *uthread.c* file: *uthread_block* and *uthread_unblock*. These functions will be discussed in the *sem.c* as they play more prominent roles there.
 ### sem.c
 ------
+The *sem.c* file is dedicated to implementing a semaphore that can be utilized by the user. The first two functions in this file are *sem_create()* and *sem_destroy()*. Nothing to crazy about these functions as they both allocate and deallocate space for both the *semaphore* structure itself as well as *waitQueue* inside of each structure created. *sem_create()* also initializes the internal *count* to the number passed through its parameter. 
+
+The *sem_down()* function checks to see if the count is equal to 0. If it is, it is put into a while loop that enqueues the current thread into the *waitQueue*. It then calls the *uthread.c* function: *uthread_block()*. This function dequeues the oldest thread from *threadQueue* and swaps contexts with the current running thread. Keep in mind that the current running thread is not enqueued into *threadQueue* as it is blocked and should be listed as ready. If the count is not equal to zero. The internal count is incremented down by one. 
+
+**IMPORTANT**: Instead of doing an “if” statement to check if the count is zero. The “while” loop will protect the corner case from running incorrectly. However, this doesn’t protect from starvation as Thread A may never be able to have access to resources it needs to run. \
+
+The *sem_up()* function checks to see if the specific semaphores *waitQueue* is empty. If there are threads waiting. This function will dequeue the oldest *tcb* from its list and pass it through the *uthread.c* function: *uthread_unblock()*. This function then enqueues the recently unblocked thread into the *threadQueue*. 
 ### preempt.c
 ------
 ### Makefile

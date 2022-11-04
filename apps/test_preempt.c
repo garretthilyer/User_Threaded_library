@@ -1,35 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <signal.h>
 
-#include <sem.h>
 #include <uthread.h>
 #include <preempt.c>
 
-int preemptCheck;
 
-void thread2(void* arg) {
-
+void thread3(void* arg) { /* Terminates entire proccess*/
     (void)arg;
-    preemptCheck = 1; 
-    printf("Finishing thread 2... \n");
-    return;
+    printf("In Thread THREE\n");
+    printf("Terminate Threads \n"); 
+    raise(SIGKILL);
 }
 
-void thread1(void* arg) {
-    (void)arg; 
+void thread2(void* arg) { /*Creates a Third Thread */
+    (void)arg;
 
-    uthread_create(thread2, NULL);
-    while(preemptCheck == 0 ){
-        /* do nothing */
+    preempt_disable();
+    uthread_create(thread3, NULL);
+    printf("In Thread TWO\n");
+    preempt_enable(); 
+
+    while (true) { /*Infinite while loop*/
+        printf("In Thread TWO While Loop\n");
     }
-    printf("Finishing thread 1... \n");
-    return;
+    
+}
+
+void thread1(void* arg) { /*Creates a Second Thread */
+    (void)arg;
+
+    preempt_disable(); 
+    uthread_create(thread2, NULL);
+    printf("In Thread ONE\n");
+    preempt_enable();
+
+    while (true) { /*Infinte while loop*/
+        printf("In Thread ONE While Loop\n");
+    }
+    
 }
 
 int main(void)
 {
 	uthread_run(true, thread1, NULL);
-    printf("Finishing main function... \n");
 	return 0;
 }

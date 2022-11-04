@@ -13,13 +13,14 @@
 
 typedef struct uthread_tcb* tcb;  //  Less Typing 
 
-queue_t threadQueue;  //  global ready queue 
-tcb currentThread;  //  ptr to current tcb 
+queue_t threadQueue;  //  global ready queue
+queue_t deadThread;   //  global exited thread queue
+tcb currentThread;    //  ptr to current tcb 
 
 struct uthread_tcb {
 
 	uthread_ctx_t *context;  //  needs pointer to context 
-	void* stackTop;  //  needs pointer stack 
+	void* stackTop;          //  needs pointer stack 
 
 };
 
@@ -66,10 +67,9 @@ void uthread_exit(void)
 		if (queue_dequeue(threadQueue, (void**)&newThread)) {  //  get next thread to run 
 			return;
 		}
+		queue_enqueue(deadThread, deleteThread);
 		currentThread = newThread;
-
 		preempt_enable();  //  leaving critical section 
-
 		uthread_ctx_switch(deleteThread->context, newThread->context);  //  swap contexts
 			
 	} else {
@@ -128,11 +128,24 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 	/*While ready queue is not empty keep yielding */
 	while (queue_length(threadQueue) != 0) {
+
+		while(queue_length(deadThread) > 0) {  // everytime we reach idle thread, check to see if we can free space of exited threads 
+			
+			tcb remove;
+			queue_dequeue(deadThread, (void**)&remove);
+			free(remove->context);
+			free(remove);
+		}
+
 		uthread_yield();
 	}
 
 	/* Destroy everything */
-	if (queue_destroy(threadQueue) ){
+	if ( queue_destroy(threadQueue) ){
+		return -1;
+	}
+
+	if ( queue_destroy(deadThread) ){
 		return -1;
 	}
 

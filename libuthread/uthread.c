@@ -11,21 +11,21 @@
 #include "queue.h"
 
 
-typedef struct uthread_tcb* tcb;
+typedef struct uthread_tcb* tcb;  //  Less Typing 
 
-queue_t threadQueue;
-tcb currentThread;
+queue_t threadQueue;  //  global ready queue 
+tcb currentThread;  //  ptr to current tcb 
 
 struct uthread_tcb {
 
-	uthread_ctx_t *context;
-	void* stackTop;
+	uthread_ctx_t *context;  //  needs pointer to context 
+	void* stackTop;  //  needs pointer stack 
 
 };
 
 struct uthread_tcb *uthread_current(void)
 {
-	return currentThread;
+	return currentThread;  //  just return global tcb to current running tcb 
 }
 
 void uthread_yield(void)
@@ -34,34 +34,53 @@ void uthread_yield(void)
 		return; 
 	}
 	
-	tcb yieldThread = uthread_current();
-	queue_enqueue(threadQueue, yieldThread);
+	preempt_disable();  // entering critical section 
 
-	tcb newThread; 
-	queue_dequeue(threadQueue, (void**)&newThread);
-	currentThread = newThread;
+	tcb yieldThread = uthread_current();  //  get thread to yield 
+	if (queue_enqueue(threadQueue, yieldThread)) {  //  add it to ready queue 
+		return;
+	}
+	tcb newThread;  
 
-	uthread_ctx_switch(yieldThread->context, newThread->context);
+	if (queue_dequeue(threadQueue, (void**)&newThread)) {  // get next thread to run 
+		return;
+	}
+	currentThread = newThread;  //  set global tcb to next thread to run 
+
+	preempt_enable();  //  leaving critical section 
+
+	uthread_ctx_switch(yieldThread->context, newThread->context);  //  swap context
 
 }
 
 void uthread_exit(void)
 {
-	tcb deleteThread = uthread_current();
-	if (queue_length(threadQueue) != 0) {
 
-		uthread_ctx_destroy_stack(deleteThread->stackTop);
+	if (queue_length(threadQueue) > 0) {
+		preempt_disable();  //  entering critical section 
+
+		tcb deleteThread = uthread_current();  //  get exiting thread 
+		uthread_ctx_destroy_stack(deleteThread->stackTop);  // free stack 
 		tcb newThread;
-		queue_dequeue(threadQueue, (void**)&newThread);
+
+		if (queue_dequeue(threadQueue, (void**)&newThread)) {  //  get next thread to run 
+			return;
+		}
 		currentThread = newThread;
-		uthread_ctx_switch(deleteThread->context, newThread->context);
+
+		preempt_enable();  //  leaving critical section 
+
+		uthread_ctx_switch(deleteThread->context, newThread->context);  //  swap contexts
 			
 	} else {
 
+		preempt_disable(); //  entering critical section 
+		tcb deleteThread = uthread_current();  //  free everything 
 		free(deleteThread->context);
 		uthread_ctx_destroy_stack(deleteThread->stackTop);
 		free(deleteThread);
-		return; 
+
+		return;
 
 	}
 
@@ -71,28 +90,33 @@ int uthread_create(uthread_func_t func, void *arg)
 {
 	
 	tcb createThread = (tcb)malloc(sizeof(struct uthread_tcb));  //  allocate space for thread ptr
-	createThread->stackTop = uthread_ctx_alloc_stack();
+	createThread->stackTop = uthread_ctx_alloc_stack(); 
 	createThread->context = (uthread_ctx_t*)malloc(sizeof(uthread_ctx_t));
 
 	if ( createThread->stackTop == NULL ){
 		return -1;
 	}
 
-	if ( uthread_ctx_init(createThread->context, createThread->stackTop, func, arg) ){
+	preempt_disable();  //  entering critical section 
+
+	if ( uthread_ctx_init(createThread->context, createThread->stackTop, func, arg) ){  //  create context 
 		return -1;
 	}
 
-	queue_enqueue(threadQueue, createThread);
+	if ( queue_enqueue(threadQueue, createThread) ) {  //  enqueue tcb to thread queue
+		return -1;
+	}
+
+	preempt_enable();  //  leaving critical section 
 
 	return 0;
 }
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	if (preempt) {  //  if preempt is TRUE, enable preemptive scheduling 
-		//preempt_enable();
-	} 
+	preempt_start(preempt);  // start preemption if true 
 
+	/* Intialize idle thread */
 	threadQueue = queue_create();
 	tcb idle = (tcb)malloc(sizeof(struct uthread_tcb));
 	idle->stackTop = uthread_ctx_alloc_stack();
@@ -102,28 +126,45 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	currentThread = idle;
 	uthread_create(func, arg);
 
+	/*While ready queue is not empty keep yielding */
 	while (queue_length(threadQueue) != 0) {
 		uthread_yield();
 	}
 
-	queue_destroy(threadQueue);
+	/* Destroy everything */
+	if (queue_destroy(threadQueue) ){
+		return -1;
+	}
+
+	/* End Preemption */
+	if (preempt) {
+		preempt_stop();
+	}
+
 	return 0;
 }
 
 void uthread_block(void)
 {
+	preempt_disable();  //  entering critical section 
+
 	tcb nextThread;
 	tcb blockedThread = uthread_current();
-	queue_dequeue(threadQueue, (void**)&nextThread);
+	if ( queue_dequeue(threadQueue, (void**)&nextThread) ) {
+		return;
+	}
 	currentThread = nextThread;
+
+	preempt_enable();  //  leaving critical section 
+
 	uthread_ctx_switch(blockedThread->context, nextThread->context);
 
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	
-	queue_enqueue(threadQueue, uthread);
+
+	queue_enqueue(threadQueue, uthread);  // enqueue unblocked 
 	
 }
 

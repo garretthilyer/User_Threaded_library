@@ -25,8 +25,8 @@ struct sigaction OLDACTION;
 sigset_t signalset;
 
 /*We want our handler to force a thread to yield and swap contexts*/
-void alarm_handler(int signum){
-	uthread_yield();
+void alarm_handler(){
+		uthread_yield();
 }
 
 
@@ -48,34 +48,37 @@ void preempt_enable(void)
 
 void preempt_start(bool preempt)
 {
+	sigemptyset(&signalset);
+	sigaddset(&signalset, SIGVTALRM);
+
 	if (!preempt) {
-		return 
+		return;
 	}
 
 	/*SET UP TIMER */
-	NEWTIMER.it_interval.tv.usec = 1000000 / HZ;
-	NEWTIMER.it_value.tv.usec = 1000000 / HZ;
+	NEWTIMER.it_interval.tv_usec = 1000000 / HZ;
+	NEWTIMER.it_value.tv_usec = 1000000 / HZ;
 
-	NEWTIMER.it_interval.tv.sec = 0;
-	NEWTIMER.it_value.tv.sec = 0;
+	NEWTIMER.it_interval.tv_sec = 0;
+	NEWTIMER.it_value.tv_sec = 0;
 
 	setitimer(ITIMER_VIRTUAL, &NEWTIMER, &OLDTIMER);
 
-	sigemptyset(&signalset);
-	sigaddset(&signalset, SIGVTALRM);
+	
 
 
 	/*SET UP HANDLER FOR ALARMS*/
 	NEWACTION.sa_handler = alarm_handler;
-	sigemptyset(&NEWACTION.sa_mask)
+	sigemptyset(&NEWACTION.sa_mask);
 	NEWACTION.sa_flags = 0;
 
-	sigaction(SIGVTALRM, &NEWACTION, &OLDACTION)
+	sigaction(SIGVTALRM, &NEWACTION, &OLDACTION);
 
 }
 
 void preempt_stop(void)
 {
+	preempt_disable();
 	/*Restore signal and timer*/
 	sigaction(SIGVTALRM, &OLDACTION, NULL);
 	setitimer(ITIMER_VIRTUAL, &OLDTIMER, NULL);

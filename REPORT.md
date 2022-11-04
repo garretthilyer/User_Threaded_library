@@ -1,12 +1,12 @@
-## Introduction
+# Introduction
 ------
 The overall goal of this programming project was to undestand the essential building blocks of concurrency and multi-threaded programming. It built off of our previous knowledge of processes and required incorporating new concepts including locks, critical section, semaphores, resource preemption and unit-testing.
 
-## Implementation
+# Implementation
 ------
 Our implementation follows the phases laid out in the project instructions very closely. Starting with *queue.c* and *queue_tester.c* and then moving onto *uthread.c* and *
 
-#### Data Structures
+### Data Structures
 ------
 
 ### queue.c
@@ -27,7 +27,7 @@ The queue_tester.c file contains the testing information for queue.c. We reused 
 ------
 ADD STUFF HERE WALE
 
-## Conclusion
+# Conclusion
 ------
 
 

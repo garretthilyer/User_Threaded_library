@@ -38,9 +38,7 @@ The *sem_down()* function checks to see if the count is equal to 0. If it is, it
 The *sem_up()* function checks to see if the specific semaphores *waitQueue* is empty. If there are threads waiting. This function will dequeue the oldest *tcb* from its list and pass it through the *uthread.c* function: *uthread_unblock()*. This function then enqueues the recently unblocked thread into the *threadQueue*. 
 ### preempt.c
 ------
+The final stage of this project is found in the *preempt.c* file. This file allows for a different form of scheduling rather than cooperative. Preemption essentially forces all threads to share resources. This file sets uses two *itimerval* called *NEWTIMER* and *OLDTIMER* which allows for the alarm handler to be called at a precision of microseconds. The file also utilizes a global *sigset_t signalset* that allows for both *preempt_enable()* and *preempt_disable()* to call the same initialized sigset. Both of these functions use *sigprocmask* to block and unblock the signal SIGVTALRM sent using *SIG_BLOCK* and *SIG_UNBLOCK* respectively. The handler used called *alarm_handler()* calls *uthread_yield()* each time a signal is sent. This is essentially the goal of the entire *preempt.c* file as it forcibly makes the current thread running yield to the next. There are two other global structures that are of type *sigaction* called *NEWACTION* and *OLDACTION*. These two structures are used to map the signal *SIGVTALRM* to our custom *alarm_handler()*. The timers and sigaction structures are both set in *preempt_start()* and restored in *preempt_stop()*. 
 ### Makefile
 ------
 Our makefile adopted various components from lecture and discussion including the % pattern rule convention and the -MMD flag combined with "patsubst" that checks the dependencies our files need and uses them to compile each object file accordingly. The last main feature we included was the "ar rcs" flag needed to combine our object files and create a static library. We stored this in a variable named LC and used it similar to how the CC variable is used.
-
-# Conclusion
-------

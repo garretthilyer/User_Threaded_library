@@ -25,7 +25,7 @@ The queue_tester.c file contains the testing information for queue.c. We reused 
 
 ### Makefile
 ------
-ADD STUFF HERE WALE
+Our makefile adopted various components from lecture and discussion including the % pattern rule convention and the -MMD flag combined with "patsubst" that checks the dependencies our files need and uses them to compile each object file accordingly. The last main feature we included was the "ar rcs" flag needed to combine our object files and create a static library. We stored this in a variable named LC and used it similar to how the CC variable is used.
 
 # Conclusion
 ------

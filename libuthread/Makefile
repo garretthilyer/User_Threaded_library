@@ -3,29 +3,34 @@ lib := libuthread.a
 OBJ := queue.o context.o uthread.o sem.o preempt.o 
 
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror
-CFLAGS += -g
+LC := ar rcs
+CFLAGS := -Wall -Wextra -Werror -MMD
+
+## Debug flag
+ifneq ($(D),1)
+CFLAGS    += -O2
+else
+CFLAGS    += -g
+endif
+
+ifneq ($(V),1)
+Q = @
+endif
 
 all: $(lib)
 
+deps := $(patsubst %.o,%.d,$(OBJ))
+-include $(deps)
+
 libuthread.a: $(OBJ)
-	ar rcs $@ $(OBJ)
+	@echo "LC $@"
+	$(LC) $@ $(OBJ)
 
-queue.o: queue.c queue.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-context.o: context.c private.h uthread.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-preempt.o: preempt.c private.h uthread.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-sem.o: sem.c queue.h private.h sem.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-uthread.o: uthread.c private.h uthread.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+%.o: %.c
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ) $(lib)
+	echo "clean"
+	$(Q)rm -f $(OBJ) $(lib) $(deps)
